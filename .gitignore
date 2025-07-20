@@ -1,0 +1,43 @@
+# Node.js dependencies
+node_modules/
+
+# Output of 'next build'
+.next/
+out/
+
+# Local environment variables
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Optional npm cache directory
+.npm/
+
+# Optional eslint cache
+.eslintcache
+
+# Next.js static folder (optional if used during export)
+public/static/
+
+# VSCode settings (optional)
+.vscode/
+
+# Mac OS
+.DS_Store
+
+# Optional: ignore coverage reports
+coverage/
+
+# Optional: ignore turbo cache
+.turbo/
+
+# Optional: ignore next telemetry
+.next-tasks/
+

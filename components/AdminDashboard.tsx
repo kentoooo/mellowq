@@ -1,0 +1,272 @@
+'use client';
+
+import { useState } from 'react';
+import { Survey, Response, FollowupQuestion } from '@/types';
+
+interface AdminDashboardProps {
+  survey: Survey;
+  responses: Response[];
+  stats: any;
+  surveyUrl: string;
+  onFollowupSubmit: (responseId: string, question: string) => Promise<any>;
+}
+
+export default function AdminDashboard({
+  survey,
+  responses,
+  stats,
+  surveyUrl,
+  onFollowupSubmit,
+}: AdminDashboardProps) {
+  const [selectedResponse, setSelectedResponse] = useState<Response | null>(null);
+  const [followupQuestion, setFollowupQuestion] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showFollowupForm, setShowFollowupForm] = useState<string | null>(null);
+
+  const handleFollowupSubmit = async (responseId: string) => {
+    if (!followupQuestion.trim()) return;
+
+    setIsSubmitting(true);
+    try {
+      const result = await onFollowupSubmit(responseId, followupQuestion);
+      if (result.notificationSent) {
+        alert('追加質問を送信し、通知も送信されました。');
+      } else {
+        alert('追加質問を送信しました。（回答者は通知を許可していません）');
+      }
+      setFollowupQuestion('');
+      setShowFollowupForm(null);
+    } catch (error) {
+      alert('追加質問の送信に失敗しました。');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    alert('URLをコピーしました');
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* ヘッダー */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">{survey.title}</h1>
+        <p className="text-gray-600 mb-4">{survey.description}</p>
+        <div className="bg-gray-50 p-4 rounded-md">
+          <p className="text-sm font-medium text-gray-700 mb-2">アンケートURL</p>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={surveyUrl}
+              readOnly
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-white text-sm"
+            />
+            <button
+              onClick={() => copyToClipboard(surveyUrl)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
+            >
+              コピー
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* 統計情報 */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <h2 className="text-xl font-semibold mb-4">回答統計</h2>
+        <p className="text-gray-600 mb-4">総回答数: {stats.totalResponses}</p>
+        
+        <div className="space-y-6">
+          {stats.questionsStats.map((questionStat: any) => (
+            <div key={questionStat.questionId} className="border-t pt-4">
+              <h3 className="font-medium mb-2">{questionStat.text}</h3>
+              <p className="text-sm text-gray-600 mb-2">
+                回答数: {questionStat.totalAnswers}
+              </p>
+              
+              {questionStat.optionCounts && (
+                <div className="space-y-2">
+                  {Object.entries(questionStat.optionCounts).map(([option, count]) => (
+                    <div key={option} className="flex items-center gap-2">
+                      <div className="flex-1">
+                        <div className="flex justify-between text-sm mb-1">
+                          <span>{option}</span>
+                          <span className="text-gray-600">
+                            {count as number} ({((count as number / questionStat.totalAnswers) * 100).toFixed(1)}%)
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-blue-600 h-2 rounded-full"
+                            style={{
+                              width: `${(count as number / questionStat.totalAnswers) * 100}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 回答一覧 */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <h2 className="text-xl font-semibold mb-4">回答一覧</h2>
+        
+        {responses.length === 0 ? (
+          <p className="text-gray-600">まだ回答がありません。</p>
+        ) : (
+          <div className="space-y-4">
+            {responses.map((response) => (
+              <div
+                key={response.id}
+                className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
+                onClick={() => setSelectedResponse(response)}
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      匿名ID: {response.anonymousId}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      回答日時: {new Date(response.submittedAt).toLocaleString('ja-JP')}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {response.pushSubscription && (
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                        通知許可
+                      </span>
+                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowFollowupForm(response.id);
+                      }}
+                      className="text-sm text-blue-600 hover:text-blue-800"
+                    >
+                      追加質問
+                    </button>
+                  </div>
+                </div>
+
+                {/* 回答のプレビュー */}
+                <div className="text-sm text-gray-700">
+                  {response.answers.slice(0, 2).map((answer) => {
+                    const question = survey.questions.find(q => q.id === answer.questionId);
+                    return (
+                      <p key={answer.questionId} className="truncate">
+                        {question?.text}: {
+                          Array.isArray(answer.value) 
+                            ? answer.value.join(', ') 
+                            : answer.value
+                        }
+                      </p>
+                    );
+                  })}
+                  {response.answers.length > 2 && (
+                    <p className="text-gray-500">他{response.answers.length - 2}件の回答...</p>
+                  )}
+                </div>
+
+                {/* 追加質問フォーム */}
+                {showFollowupForm === response.id && (
+                  <div className="mt-4 p-4 bg-gray-50 rounded-md" onClick={(e) => e.stopPropagation()}>
+                    <h4 className="font-medium mb-2">追加質問を送信</h4>
+                    <textarea
+                      value={followupQuestion}
+                      onChange={(e) => setFollowupQuestion(e.target.value)}
+                      placeholder="追加で聞きたいことを入力してください"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      rows={3}
+                    />
+                    <div className="mt-2 flex gap-2">
+                      <button
+                        onClick={() => handleFollowupSubmit(response.id)}
+                        disabled={isSubmitting || !followupQuestion.trim()}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 text-sm"
+                      >
+                        {isSubmitting ? '送信中...' : '送信'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowFollowupForm(null);
+                          setFollowupQuestion('');
+                        }}
+                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 text-sm"
+                      >
+                        キャンセル
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 回答詳細モーダル */}
+      {selectedResponse && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          onClick={() => setSelectedResponse(null)}
+        >
+          <div
+            className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-lg font-semibold">回答詳細</h3>
+              <button
+                onClick={() => setSelectedResponse(null)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm font-medium text-gray-700">匿名ID</p>
+                <p className="text-sm text-gray-900">{selectedResponse.anonymousId}</p>
+              </div>
+              
+              <div>
+                <p className="text-sm font-medium text-gray-700">回答日時</p>
+                <p className="text-sm text-gray-900">
+                  {new Date(selectedResponse.submittedAt).toLocaleString('ja-JP')}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-2">回答内容</p>
+                <div className="space-y-3">
+                  {selectedResponse.answers.map((answer) => {
+                    const question = survey.questions.find(q => q.id === answer.questionId);
+                    return (
+                      <div key={answer.questionId} className="border-l-4 border-gray-200 pl-4">
+                        <p className="font-medium text-sm">{question?.text}</p>
+                        <p className="text-gray-700 mt-1">
+                          {Array.isArray(answer.value) 
+                            ? answer.value.join(', ') 
+                            : answer.value}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -41,3 +41,6 @@ coverage/
 # Optional: ignore next telemetry
 .next-tasks/
 
+# Docker volumes and data
+docker-data/
+

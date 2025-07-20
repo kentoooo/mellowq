@@ -1,0 +1,16 @@
+{
+  "name": "MellowQ - 匿名アンケートサービス",
+  "short_name": "MellowQ",
+  "description": "匿名性を保ちながら双方向のコミュニケーションが可能なアンケートサービス",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/next.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}

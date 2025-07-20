@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ObjectId } from 'mongodb';
+import { ObjectId, OptionalId } from 'mongodb';
 import { 
   getSurveysCollection, 
   getResponsesCollection,
@@ -50,7 +50,7 @@ export async function POST(
     }
 
     // 追加質問の保存
-    const followupQuestion: Omit<FollowupQuestionDocument, '_id'> = {
+    const followupQuestion: OptionalId<FollowupQuestionDocument> = {
       responseId,
       question,
       createdAt: new Date(),

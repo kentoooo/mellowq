@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { OptionalId } from 'mongodb';
 import { getSurveysCollection, SurveyDocument } from '@/lib/db/models';
 import { generateSurveyId, generateAdminToken, generateQuestionId } from '@/lib/utils/id-generator';
 import { validateSurveyInput, sanitizeText } from '@/lib/utils/validation';
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
       required: q.required || false,
     }));
 
-    const survey: Omit<SurveyDocument, '_id'> = {
+    const survey: OptionalId<SurveyDocument> = {
       adminToken,
       title: sanitizeText(title),
       description: sanitizeText(description),

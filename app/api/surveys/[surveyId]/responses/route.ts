@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ObjectId } from 'mongodb';
+import { ObjectId, OptionalId } from 'mongodb';
 import { getResponsesCollection, getSurveysCollection, ResponseDocument } from '@/lib/db/models';
 import { generateAnonymousId, generateResponseToken } from '@/lib/utils/id-generator';
 import { validateResponseInput, sanitizeText } from '@/lib/utils/validation';
@@ -61,7 +61,7 @@ export async function POST(
         : sanitizeText(answer.value as string)
     }));
 
-    const response: Omit<ResponseDocument, '_id'> = {
+    const response: OptionalId<ResponseDocument> = {
       surveyId,
       anonymousId,
       responseToken,

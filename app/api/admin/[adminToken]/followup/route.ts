@@ -3,7 +3,8 @@ import { ObjectId } from 'mongodb';
 import { 
   getSurveysCollection, 
   getResponsesCollection,
-  getFollowupQuestionsCollection 
+  getFollowupQuestionsCollection,
+  FollowupQuestionDocument
 } from '@/lib/db/models';
 import { sendPushNotification } from '@/lib/utils/web-push';
 
@@ -49,7 +50,7 @@ export async function POST(
     }
 
     // 追加質問の保存
-    const followupQuestion = {
+    const followupQuestion: Omit<FollowupQuestionDocument, '_id'> = {
       responseId,
       question,
       createdAt: new Date(),

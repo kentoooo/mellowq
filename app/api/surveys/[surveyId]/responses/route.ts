@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
-import { getResponsesCollection, getSurveysCollection } from '@/lib/db/models';
+import { getResponsesCollection, getSurveysCollection, ResponseDocument } from '@/lib/db/models';
 import { generateAnonymousId, generateResponseToken } from '@/lib/utils/id-generator';
 import { validateResponseInput, sanitizeText } from '@/lib/utils/validation';
 import { responseSubmissionRateLimit } from '@/lib/utils/rate-limit';
@@ -61,7 +61,7 @@ export async function POST(
         : sanitizeText(answer.value as string)
     }));
 
-    const response = {
+    const response: Omit<ResponseDocument, '_id'> = {
       surveyId,
       anonymousId,
       responseToken,

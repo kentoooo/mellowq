@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { OptionalId } from 'mongodb';
 import { getSurveysCollection, SurveyDocument } from '@/lib/db/models';
 import { generateSurveyId, generateAdminToken, generateQuestionId } from '@/lib/utils/id-generator';
 import { validateSurveyInput, sanitizeText } from '@/lib/utils/validation';
@@ -41,7 +40,7 @@ export async function POST(request: NextRequest) {
       required: q.required || false,
     }));
 
-    const survey: OptionalId<SurveyDocument> = {
+    const survey = {
       adminToken,
       title: sanitizeText(title),
       description: sanitizeText(description),
@@ -50,7 +49,7 @@ export async function POST(request: NextRequest) {
     };
 
     const surveysCollection = await getSurveysCollection();
-    const result = await surveysCollection.insertOne(survey);
+    const result = await surveysCollection.insertOne(survey as SurveyDocument);
 
     if (!result.acknowledged) {
       throw new Error('Failed to create survey');

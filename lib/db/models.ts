@@ -1,4 +1,4 @@
-import { Collection, Db, ObjectId, OptionalId } from 'mongodb';
+import { Collection, Db, ObjectId } from 'mongodb';
 import { getDb } from './mongodb';
 import { 
   Survey, 

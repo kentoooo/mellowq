@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ObjectId, OptionalId } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { getResponsesCollection, getSurveysCollection, ResponseDocument } from '@/lib/db/models';
 import { generateAnonymousId, generateResponseToken } from '@/lib/utils/id-generator';
 import { validateResponseInput, sanitizeText } from '@/lib/utils/validation';
@@ -61,7 +61,7 @@ export async function POST(
         : sanitizeText(answer.value as string)
     }));
 
-    const response: OptionalId<ResponseDocument> = {
+    const response = {
       surveyId,
       anonymousId,
       responseToken,
@@ -71,7 +71,7 @@ export async function POST(
     };
 
     const responsesCollection = await getResponsesCollection();
-    const result = await responsesCollection.insertOne(response);
+    const result = await responsesCollection.insertOne(response as ResponseDocument);
 
     if (!result.acknowledged) {
       throw new Error('Failed to save response');

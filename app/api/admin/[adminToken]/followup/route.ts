@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ObjectId, OptionalId } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { 
   getSurveysCollection, 
   getResponsesCollection,
@@ -50,14 +50,14 @@ export async function POST(
     }
 
     // 追加質問の保存
-    const followupQuestion: OptionalId<FollowupQuestionDocument> = {
+    const followupQuestion = {
       responseId,
       question,
       createdAt: new Date(),
     };
 
     const followupQuestionsCollection = await getFollowupQuestionsCollection();
-    const result = await followupQuestionsCollection.insertOne(followupQuestion);
+    const result = await followupQuestionsCollection.insertOne(followupQuestion as FollowupQuestionDocument);
 
     if (!result.acknowledged) {
       throw new Error('Failed to save followup question');

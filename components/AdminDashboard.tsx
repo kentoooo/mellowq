@@ -25,10 +25,24 @@ export default function AdminDashboard({
   const [expandedFollowups, setExpandedFollowups] = useState<Set<string>>(new Set());
   const [isClient, setIsClient] = useState(false);
   const [showCopyToast, setShowCopyToast] = useState(false);
+  const [followupToast, setFollowupToast] = useState<{ show: boolean; message: string; type: 'success' | 'info' }>({
+    show: false,
+    message: '',
+    type: 'success'
+  });
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  const showFollowupToast = (message: string, type: 'success' | 'info' = 'success') => {
+    console.log('Showing toast:', message, type);
+    setFollowupToast({ show: true, message, type });
+    setTimeout(() => {
+      console.log('Hiding toast');
+      setFollowupToast({ show: false, message: '', type: 'success' });
+    }, 1500);
+  };
 
   const handleFollowupSubmit = async (responseId: string) => {
     if (!followupQuestion.trim()) return;
@@ -37,14 +51,14 @@ export default function AdminDashboard({
     try {
       const result = await onFollowupSubmit(responseId, followupQuestion);
       if (result.notificationSent) {
-        alert('追加質問を送信し、通知も送信されました。');
+        showFollowupToast('追加質問を送信し、通知も送信されました。', 'success');
       } else {
-        alert('追加質問を送信しました。（回答者は通知を許可していません）');
+        showFollowupToast('追加質問を送信しました。（回答者は通知を許可していません）', 'info');
       }
       setFollowupQuestion('');
       setShowFollowupForm(null);
     } catch (error) {
-      alert('追加質問の送信に失敗しました。');
+      showFollowupToast('追加質問の送信に失敗しました。', 'info');
     } finally {
       setIsSubmitting(false);
     }
@@ -67,7 +81,18 @@ export default function AdminDashboard({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {/* 右上トースト通知 */}
+      {followupToast.show && (
+        <div className="fixed top-6 right-6 z-[9999] animate-slide-in-right">
+          <div className={`${
+            followupToast.type === 'success' ? 'bg-green-600' : 'bg-blue-600'
+          } text-white px-6 py-4 rounded-lg shadow-xl max-w-md border border-white/20`}>
+            <p className="text-base font-medium">{followupToast.message}</p>
+          </div>
+        </div>
+      )}
+
       {/* ヘッダー */}
       <div className="bg-white shadow rounded-lg p-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">{survey.title}</h1>

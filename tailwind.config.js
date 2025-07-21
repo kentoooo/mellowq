@@ -18,6 +18,7 @@ module.exports = {
         'slow-pulse': 'slowPulse 3s ease-in-out infinite',
         'gentle-bounce': 'gentleBounce 4s ease-in-out infinite',
         'fade-glow': 'fadeGlow 2s ease-in-out infinite',
+        'slide-in-right': 'slideInRight 1.2s ease-out',
         'drift-1': 'drift1 8s ease-in-out infinite',
         'drift-2': 'drift2 10s ease-in-out infinite',
         'drift-3': 'drift3 7s ease-in-out infinite',
@@ -128,6 +129,10 @@ module.exports = {
         fadeGlow: {
           '0%, 100%': { opacity: '0.2' },
           '50%': { opacity: '1' },
+        },
+        slideInRight: {
+          '0%': { transform: 'translateX(100%)', opacity: '0' },
+          '100%': { transform: 'translateX(0)', opacity: '1' },
         },
       },
     },

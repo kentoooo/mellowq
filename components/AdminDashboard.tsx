@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Survey, ResponseWithFollowup } from '@/types';
 
 interface AdminDashboardProps {
@@ -23,6 +23,11 @@ export default function AdminDashboard({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showFollowupForm, setShowFollowupForm] = useState<string | null>(null);
   const [expandedFollowups, setExpandedFollowups] = useState<Set<string>>(new Set());
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleFollowupSubmit = async (responseId: string) => {
     if (!followupQuestion.trim()) return;
@@ -146,7 +151,7 @@ export default function AdminDashboard({
                       匿名ID: {response.anonymousId}
                     </p>
                     <p className="text-sm text-gray-600">
-                      回答日時: {new Date(response.submittedAt).toLocaleString('ja-JP')}
+                      回答日時: {isClient ? new Date(response.submittedAt).toLocaleString('ja-JP') : '読み込み中...'}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -232,7 +237,7 @@ export default function AdminDashboard({
                               <div className="flex justify-between items-start mb-2">
                                 <span className="text-xs font-medium text-blue-600">質問 #{index + 1}</span>
                                 <span className="text-xs text-gray-500">
-                                  {new Date(followup.createdAt).toLocaleString('ja-JP')}
+                                  {isClient ? new Date(followup.createdAt).toLocaleString('ja-JP') : '読み込み中...'}
                                 </span>
                               </div>
                               <p className="text-sm font-medium text-gray-800">{followup.question}</p>
@@ -244,7 +249,7 @@ export default function AdminDashboard({
                                 <div className="flex justify-between items-start mb-2">
                                   <span className="text-xs font-medium text-green-600">回答</span>
                                   <span className="text-xs text-gray-500">
-                                    {followup.answeredAt ? new Date(followup.answeredAt).toLocaleString('ja-JP') : '-'}
+                                    {isClient && followup.answeredAt ? new Date(followup.answeredAt).toLocaleString('ja-JP') : '-'}
                                   </span>
                                 </div>
                                 <p className="text-sm text-gray-800">{followup.answer}</p>
@@ -328,7 +333,7 @@ export default function AdminDashboard({
               <div>
                 <p className="text-sm font-medium text-gray-700">回答日時</p>
                 <p className="text-sm text-gray-900">
-                  {new Date(selectedResponse.submittedAt).toLocaleString('ja-JP')}
+                  {isClient ? new Date(selectedResponse.submittedAt).toLocaleString('ja-JP') : '読み込み中...'}
                 </p>
               </div>
 
@@ -362,7 +367,7 @@ export default function AdminDashboard({
                       <div key={followup.id} className="border rounded-md p-4 bg-gray-50">
                         <div className="mb-2">
                           <p className="text-xs text-gray-500">
-                            質問日時: {new Date(followup.createdAt).toLocaleString('ja-JP')}
+                            質問日時: {isClient ? new Date(followup.createdAt).toLocaleString('ja-JP') : '読み込み中...'}
                           </p>
                         </div>
                         <div className="mb-3">
@@ -374,7 +379,7 @@ export default function AdminDashboard({
                             <p className="text-sm font-medium text-green-700">回答:</p>
                             <p className="text-sm text-green-900 mt-1">{followup.answer}</p>
                             <p className="text-xs text-gray-500 mt-1">
-                              回答日時: {followup.answeredAt ? new Date(followup.answeredAt).toLocaleString('ja-JP') : '-'}
+                              回答日時: {isClient && followup.answeredAt ? new Date(followup.answeredAt).toLocaleString('ja-JP') : '-'}
                             </p>
                           </div>
                         ) : (

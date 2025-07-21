@@ -48,6 +48,13 @@ export async function POST(
         { status: 404 }
       );
     }
+    
+    // デバッグログ
+    console.log('Response found:', {
+      id: response._id,
+      hasPushSubscription: !!response.pushSubscription,
+      pushSubscriptionKeys: response.pushSubscription ? Object.keys(response.pushSubscription) : 'none'
+    });
 
     // 追加質問の保存
     const followupQuestion = {

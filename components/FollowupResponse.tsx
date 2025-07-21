@@ -19,6 +19,16 @@ export default function FollowupResponse({
   const [currentAnswer, setCurrentAnswer] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittingQuestionId, setSubmittingQuestionId] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({
+    show: false,
+    message: '',
+    type: 'success'
+  });
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 1500);
+  };
 
   const handleAnswerSubmit = async (followupQuestionId: string) => {
     if (!currentAnswer.trim()) return;
@@ -29,9 +39,9 @@ export default function FollowupResponse({
     try {
       await onAnswerSubmit(followupQuestionId, currentAnswer);
       setCurrentAnswer('');
-      alert('回答を送信しました！');
+      showToast('回答を送信しました！', 'success');
     } catch (error) {
-      alert('回答の送信に失敗しました。');
+      showToast('回答の送信に失敗しました。', 'error');
     } finally {
       setIsSubmitting(false);
       setSubmittingQuestionId(null);
@@ -42,7 +52,18 @@ export default function FollowupResponse({
   const answeredQuestions = followupQuestions.filter(q => q.answer);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {/* 右上トースト通知 */}
+      {toast.show && (
+        <div className="fixed top-6 right-6 z-[9999] animate-slide-in-right">
+          <div className={`${
+            toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'
+          } text-white px-6 py-4 rounded-lg shadow-xl max-w-md border border-white/20`}>
+            <p className="text-base font-medium">{toast.message}</p>
+          </div>
+        </div>
+      )}
+
       {/* ヘッダー */}
       <div className="bg-white shadow rounded-lg p-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">追加質問への回答</h1>

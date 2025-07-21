@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Survey, ResponseWithFollowup, FollowupQuestion } from '@/types';
+import { Survey, ResponseWithFollowup } from '@/types';
 
 interface AdminDashboardProps {
   survey: Survey;
@@ -18,7 +18,7 @@ export default function AdminDashboard({
   surveyUrl,
   onFollowupSubmit,
 }: AdminDashboardProps) {
-  const [selectedResponse, setSelectedResponse] = useState<Response | null>(null);
+  const [selectedResponse, setSelectedResponse] = useState<ResponseWithFollowup | null>(null);
   const [followupQuestion, setFollowupQuestion] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showFollowupForm, setShowFollowupForm] = useState<string | null>(null);

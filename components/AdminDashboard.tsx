@@ -24,6 +24,7 @@ export default function AdminDashboard({
   const [showFollowupForm, setShowFollowupForm] = useState<string | null>(null);
   const [expandedFollowups, setExpandedFollowups] = useState<Set<string>>(new Set());
   const [isClient, setIsClient] = useState(false);
+  const [showCopyToast, setShowCopyToast] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -51,7 +52,8 @@ export default function AdminDashboard({
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    alert('URLをコピーしました');
+    setShowCopyToast(true);
+    setTimeout(() => setShowCopyToast(false), 1000);
   };
 
   const toggleFollowupExpand = (responseId: string) => {
@@ -72,19 +74,32 @@ export default function AdminDashboard({
         <p className="text-gray-600 mb-4">{survey.description}</p>
         <div className="bg-gray-50 p-4 rounded-md">
           <p className="text-sm font-medium text-gray-700 mb-2">アンケートURL</p>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 relative">
             <input
               type="text"
               value={surveyUrl}
               readOnly
               className="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-white text-sm"
             />
-            <button
-              onClick={() => copyToClipboard(surveyUrl)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
-            >
-              コピー
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => copyToClipboard(surveyUrl)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
+              >
+                コピー
+              </button>
+              {showCopyToast && (
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-10">
+                  <div className="bg-green-600 text-white text-xs px-3 py-2 rounded-md shadow-lg animate-fade-in-up whitespace-nowrap">
+                    URLをコピーしました
+                    {/* 矢印 */}
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2">
+                      <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-green-600"></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

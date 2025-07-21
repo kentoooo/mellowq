@@ -2,6 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { Survey, ResponseWithFollowup } from '@/types';
+import { Pie } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+} from 'chart.js';
 
 interface AdminDashboardProps {
   survey: Survey;
@@ -30,9 +37,12 @@ export default function AdminDashboard({
     message: '',
     type: 'success'
   });
+  const [expandedTextAnswers, setExpandedTextAnswers] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     setIsClient(true);
+    // Chart.jsの登録
+    ChartJS.register(ArcElement, Tooltip, Legend);
   }, []);
 
   const showFollowupToast = (message: string, type: 'success' | 'info' = 'success') => {
@@ -78,6 +88,85 @@ export default function AdminDashboard({
       newExpanded.add(responseId);
     }
     setExpandedFollowups(newExpanded);
+  };
+
+  const toggleTextAnswersExpand = (questionId: string) => {
+    const newExpanded = new Set(expandedTextAnswers);
+    if (newExpanded.has(questionId)) {
+      newExpanded.delete(questionId);
+    } else {
+      newExpanded.add(questionId);
+    }
+    setExpandedTextAnswers(newExpanded);
+  };
+
+  // 円グラフ用のカラーパレット
+  const getChartColors = (count: number) => {
+    const colors = [
+      '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
+      '#06B6D4', '#84CC16', '#F97316', '#EC4899', '#6B7280'
+    ];
+    return colors.slice(0, count);
+  };
+
+  // 円グラフデータの作成
+  const createPieChartData = (optionCounts: Record<string, number>) => {
+    const labels = Object.keys(optionCounts);
+    const data = Object.values(optionCounts);
+    const backgroundColor = getChartColors(labels.length);
+    
+    return {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor,
+        borderColor: backgroundColor.map(color => color),
+        borderWidth: 2,
+      }]
+    };
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'right' as const,
+        labels: {
+          padding: 20,
+          font: {
+            size: 14,
+          },
+          generateLabels: function(chart: any) {
+            const data = chart.data;
+            const total = data.datasets[0].data.reduce((a: number, b: number) => a + b, 0);
+            return data.labels.map((label: string, index: number) => {
+              const value = data.datasets[0].data[index];
+              const percentage = ((value / total) * 100).toFixed(1);
+              return {
+                text: `${label}: ${value}件 (${percentage}%)`,
+                fillStyle: data.datasets[0].backgroundColor[index],
+                strokeStyle: data.datasets[0].borderColor[index],
+                lineWidth: data.datasets[0].borderWidth,
+                hidden: false,
+                index: index
+              };
+            });
+          }
+        }
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context: any) {
+            const label = context.label || '';
+            const value = context.parsed || 0;
+            const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+            const percentage = ((value / total) * 100).toFixed(1);
+            return `${label}: ${value}件 (${percentage}%)`;
+          }
+        }
+      }
+    }
   };
 
   return (
@@ -135,39 +224,87 @@ export default function AdminDashboard({
         <p className="text-gray-600 mb-4">総回答数: {stats.totalResponses}</p>
         
         <div className="space-y-6">
-          {stats.questionsStats.map((questionStat: any) => (
-            <div key={questionStat.questionId} className="border-t pt-4">
-              <h3 className="font-medium mb-2">{questionStat.text}</h3>
-              <p className="text-sm text-gray-600 mb-2">
-                回答数: {questionStat.totalAnswers}
-              </p>
-              
-              {questionStat.optionCounts && (
-                <div className="space-y-2">
-                  {Object.entries(questionStat.optionCounts).map(([option, count]) => (
-                    <div key={option} className="flex items-center gap-2">
-                      <div className="flex-1">
-                        <div className="flex justify-between text-sm mb-1">
-                          <span>{option}</span>
-                          <span className="text-gray-600">
-                            {count as number} ({((count as number / questionStat.totalAnswers) * 100).toFixed(1)}%)
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div
-                            className="bg-blue-600 h-2 rounded-full"
-                            style={{
-                              width: `${(count as number / questionStat.totalAnswers) * 100}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
+          {stats.questionsStats.map((questionStat: any) => {
+            const question = survey.questions.find(q => q.id === questionStat.questionId);
+            const isChartType = question && (question.type === 'radio' || question.type === 'checkbox');
+            const isTextType = question && question.type === 'text';
+            
+            console.log('Question:', question?.text, 'Type:', question?.type, 'isChartType:', isChartType, 'isTextType:', isTextType);
+            
+            return (
+              <div key={questionStat.questionId} className="border-t pt-4">
+                <h3 className="font-medium mb-4">{questionStat.text}</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  回答数: {questionStat.totalAnswers}
+                </p>
+                
+                {/* 円グラフ（ラジオボタン・チェックボックス用） */}
+                {isChartType && questionStat.optionCounts && isClient ? (
+                  <div className="bg-gray-50 p-6 rounded-lg">
+                    <div style={{ height: '400px' }}>
+                      <Pie 
+                        data={createPieChartData(questionStat.optionCounts)} 
+                        options={chartOptions}
+                      />
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+                  </div>
+                ) : isTextType ? (
+                  /* テキスト回答の内容一覧 */
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="text-sm font-medium text-gray-700 mb-3">回答内容一覧</h4>
+                    {(() => {
+                      // テキスト回答を取得
+                      const textAnswers = responses
+                        .map(response => response.answers.find(answer => answer.questionId === questionStat.questionId))
+                        .filter(answer => answer && typeof answer.value === 'string' && answer.value.trim())
+                        .map(answer => answer!.value as string);
+                      
+                      const displayAnswers = expandedTextAnswers.has(questionStat.questionId) 
+                        ? textAnswers 
+                        : textAnswers.slice(0, 5);
+                      
+                      return (
+                        <div className="space-y-2">
+                          {displayAnswers.map((answer, index) => (
+                            <div key={index} className="bg-white p-3 rounded border border-gray-200">
+                              <p className="text-sm text-gray-800">{answer}</p>
+                            </div>
+                          ))}
+                          
+                          {textAnswers.length > 5 && (
+                            <button
+                              onClick={() => toggleTextAnswersExpand(questionStat.questionId)}
+                              className="w-full mt-3 px-4 py-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 text-sm font-medium transition-colors"
+                            >
+                              {expandedTextAnswers.has(questionStat.questionId) 
+                                ? `折りたたむ` 
+                                : `他${textAnswers.length - 5}件の回答を表示`}
+                            </button>
+                          )}
+                          
+                          {textAnswers.length === 0 && (
+                            <p className="text-gray-500 text-sm text-center py-4">回答がありません</p>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                ) : questionStat.optionCounts ? (
+                  /* フォールバック：optionCountsがある場合の表示 */
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <ul className="space-y-2">
+                      {Object.entries(questionStat.optionCounts).map(([option, count]) => (
+                        <li key={option} className="flex justify-between">
+                          <span>{option}</span>
+                          <span className="font-medium">{count}件</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
         </div>
       </div>
 

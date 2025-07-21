@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { 
   getSurveysCollection, 
   getResponsesCollection, 
+  getFollowupQuestionsCollection,
   documentToResponse,
-  documentToSurvey 
+  documentToSurvey,
+  documentToFollowupQuestion
 } from '@/lib/db/models';
 
 export async function GET(
@@ -31,6 +33,22 @@ export async function GET(
       .toArray();
 
     const responses = responseDocs.map(documentToResponse);
+
+    // フォローアップ質問を取得
+    const followupCollection = await getFollowupQuestionsCollection();
+    const responseIds = responses.map(r => r.id);
+    const followupDocs = await followupCollection
+      .find({ responseId: { $in: responseIds } })
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    const followupQuestions = followupDocs.map(documentToFollowupQuestion);
+
+    // 各回答にフォローアップ質問を関連付け
+    const responsesWithFollowup = responses.map(response => ({
+      ...response,
+      followupQuestions: followupQuestions.filter(fq => fq.responseId === response.id)
+    }));
 
     // 統計情報を計算
     const stats = {
@@ -81,7 +99,7 @@ export async function GET(
 
     return NextResponse.json({
       survey,
-      responses,
+      responses: responsesWithFollowup,
       stats,
     });
   } catch (error) {

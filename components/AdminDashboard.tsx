@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Survey, Response, FollowupQuestion } from '@/types';
+import { Survey, ResponseWithFollowup, FollowupQuestion } from '@/types';
 
 interface AdminDashboardProps {
   survey: Survey;
-  responses: Response[];
+  responses: ResponseWithFollowup[];
   stats: any;
   surveyUrl: string;
   onFollowupSubmit: (responseId: string, question: string) => Promise<any>;
@@ -263,6 +263,43 @@ export default function AdminDashboard({
                   })}
                 </div>
               </div>
+
+              {/* フォローアップ質問履歴 */}
+              {selectedResponse.followupQuestions && selectedResponse.followupQuestions.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">フォローアップ質問履歴</p>
+                  <div className="space-y-4">
+                    {selectedResponse.followupQuestions
+                      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                      .map((followup) => (
+                      <div key={followup.id} className="border rounded-md p-4 bg-gray-50">
+                        <div className="mb-2">
+                          <p className="text-xs text-gray-500">
+                            質問日時: {new Date(followup.createdAt).toLocaleString('ja-JP')}
+                          </p>
+                        </div>
+                        <div className="mb-3">
+                          <p className="text-sm font-medium text-gray-700">質問:</p>
+                          <p className="text-sm text-gray-900 mt-1">{followup.question}</p>
+                        </div>
+                        {followup.answer ? (
+                          <div>
+                            <p className="text-sm font-medium text-green-700">回答:</p>
+                            <p className="text-sm text-green-900 mt-1">{followup.answer}</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              回答日時: {followup.answeredAt ? new Date(followup.answeredAt).toLocaleString('ja-JP') : '-'}
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="text-sm text-orange-600">
+                            <p>未回答</p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

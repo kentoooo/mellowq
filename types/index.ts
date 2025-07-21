@@ -26,6 +26,10 @@ export interface Response {
   submittedAt: Date;
 }
 
+export interface ResponseWithFollowup extends Response {
+  followupQuestions?: FollowupQuestion[];
+}
+
 export interface PushSubscription {
   endpoint: string;
   keys: {

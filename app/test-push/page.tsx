@@ -133,62 +133,68 @@ export default function TestPushPage() {
   };
 
   return (
-    <div className="container mx-auto p-8">
-      <h1 className="text-2xl font-bold mb-6">Push Notification Test</h1>
+    <div className="min-h-screen relative overflow-hidden p-8">
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-500 via-purple-600 to-indigo-600"></div>
       
-      <div className="space-y-4">
-        <button
-          onClick={requestNotificationPermission}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          Request Permission & Subscribe
-        </button>
-        
-        <button
-          onClick={checkServiceWorker}
-          className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
-        >
-          Check Service Worker
-        </button>
-        
-        <button
-          onClick={sendTestPush}
-          disabled={!subscription}
-          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 disabled:bg-gray-400"
-        >
-          Send Test Push
-        </button>
-        
-        <button
-          onClick={sendDirectNotification}
-          className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
-        >
-          Test Direct Notification
-        </button>
-      </div>
+      <div className="relative z-10 container mx-auto">
+        <div className="bg-white shadow-xl rounded-lg p-8">
+          <h1 className="text-2xl font-bold mb-6 text-gray-900">Push Notification Test</h1>
       
-      <div className="mt-6">
-        <h2 className="text-lg font-semibold mb-2">Result:</h2>
-        <pre className="bg-gray-100 p-4 rounded whitespace-pre-wrap text-sm">
-          {result}
-        </pre>
-      </div>
-      
-      <div className="mt-6">
-        <h2 className="text-lg font-semibold mb-2">Service Worker Logs:</h2>
-        <pre className="bg-gray-200 p-4 rounded whitespace-pre-wrap text-sm">
-          {swLogs || 'No logs yet'}
-        </pre>
-      </div>
-      
-      {subscription && (
-        <div className="mt-6">
-          <h2 className="text-lg font-semibold mb-2">Subscription:</h2>
-          <pre className="bg-gray-100 p-4 rounded whitespace-pre-wrap text-xs">
-            {JSON.stringify(subscription, null, 2)}
-          </pre>
+          <div className="space-y-4">
+            <button
+              onClick={requestNotificationPermission}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            >
+              Request Permission & Subscribe
+            </button>
+            
+            <button
+              onClick={checkServiceWorker}
+              className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
+            >
+              Check Service Worker
+            </button>
+            
+            <button
+              onClick={sendTestPush}
+              disabled={!subscription}
+              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 disabled:bg-gray-400"
+            >
+              Send Test Push
+            </button>
+            
+            <button
+              onClick={sendDirectNotification}
+              className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
+            >
+              Test Direct Notification
+            </button>
+          </div>
+          
+          <div className="mt-6">
+            <h2 className="text-lg font-semibold mb-2">Result:</h2>
+            <pre className="bg-gray-100 p-4 rounded whitespace-pre-wrap text-sm">
+              {result}
+            </pre>
+          </div>
+          
+          <div className="mt-6">
+            <h2 className="text-lg font-semibold mb-2">Service Worker Logs:</h2>
+            <pre className="bg-gray-200 p-4 rounded whitespace-pre-wrap text-sm">
+              {swLogs || 'No logs yet'}
+            </pre>
+          </div>
+          
+          {subscription && (
+            <div className="mt-6">
+              <h2 className="text-lg font-semibold mb-2">Subscription:</h2>
+              <pre className="bg-gray-100 p-4 rounded whitespace-pre-wrap text-xs">
+                {JSON.stringify(subscription, null, 2)}
+              </pre>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

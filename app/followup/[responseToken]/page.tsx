@@ -67,8 +67,9 @@ export default function FollowupPage({ params }: { params: Promise<{ responseTok
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-500 via-purple-600 to-indigo-600"></div>
+        <div className="relative z-10 bg-white rounded-lg shadow-xl p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">読み込み中...</p>
         </div>
@@ -78,8 +79,9 @@ export default function FollowupPage({ params }: { params: Promise<{ responseTok
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-500 via-purple-600 to-indigo-600"></div>
+        <div className="relative z-10 bg-white rounded-lg shadow-xl p-8 text-center">
           <p className="text-red-600 mb-4">{error || '追加質問が見つかりません'}</p>
           <button
             onClick={() => router.push('/')}
@@ -93,14 +95,18 @@ export default function FollowupPage({ params }: { params: Promise<{ responseTok
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
-        <FollowupResponse
-          response={data.response}
-          survey={data.survey}
-          followupQuestions={data.followupQuestions}
-          onAnswerSubmit={handleAnswerSubmit}
-        />
+    <div className="min-h-screen relative overflow-hidden py-8 px-4 sm:px-6 lg:px-8">
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-500 via-purple-600 to-indigo-600"></div>
+      
+      <div className="relative z-10 max-w-3xl mx-auto">
+        <div className="bg-white shadow-xl rounded-lg p-8">
+          <FollowupResponse
+            response={data.response}
+            survey={data.survey}
+            followupQuestions={data.followupQuestions}
+            onAnswerSubmit={handleAnswerSubmit}
+          />
+        </div>
       </div>
     </div>
   );

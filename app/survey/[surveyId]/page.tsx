@@ -69,8 +69,9 @@ export default function SurveyPage({ params }: { params: Promise<{ surveyId: str
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-500 via-purple-600 to-indigo-600"></div>
+        <div className="relative z-10 bg-white rounded-lg shadow-xl p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">読み込み中...</p>
         </div>
@@ -80,8 +81,9 @@ export default function SurveyPage({ params }: { params: Promise<{ surveyId: str
 
   if (error && !survey) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-500 via-purple-600 to-indigo-600"></div>
+        <div className="relative z-10 bg-white rounded-lg shadow-xl p-8 text-center">
           <p className="text-red-600 mb-4">{error}</p>
           <button
             onClick={() => router.push('/')}
@@ -96,8 +98,9 @@ export default function SurveyPage({ params }: { params: Promise<{ surveyId: str
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white shadow rounded-lg p-8 max-w-md w-full text-center">
+      <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-500 via-purple-600 to-indigo-600"></div>
+        <div className="relative z-10 bg-white shadow-xl rounded-lg p-8 max-w-md w-full text-center">
           <div className="mb-4">
             <svg
               className="w-16 h-16 text-green-500 mx-auto"
@@ -132,20 +135,24 @@ export default function SurveyPage({ params }: { params: Promise<{ surveyId: str
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
-        {error && (
-          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-            {error}
-          </div>
-        )}
-        {survey && (
-          <SurveyRenderer
-            survey={survey}
-            onSubmit={handleSubmit}
-            isSubmitting={isSubmitting}
-          />
-        )}
+    <div className="min-h-screen relative overflow-hidden py-8 px-4 sm:px-6 lg:px-8">
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-500 via-purple-600 to-indigo-600"></div>
+      
+      <div className="relative z-10 max-w-3xl mx-auto">
+        <div className="bg-white shadow-xl rounded-lg p-8">
+          {error && (
+            <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+              {error}
+            </div>
+          )}
+          {survey && (
+            <SurveyRenderer
+              survey={survey}
+              onSubmit={handleSubmit}
+              isSubmitting={isSubmitting}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

@@ -69,8 +69,9 @@ export default function ManagePage({ params }: { params: Promise<{ adminToken: s
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-500 via-purple-600 to-indigo-600"></div>
+        <div className="relative z-10 bg-white rounded-lg shadow-xl p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">読み込み中...</p>
         </div>
@@ -80,8 +81,9 @@ export default function ManagePage({ params }: { params: Promise<{ adminToken: s
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-500 via-purple-600 to-indigo-600"></div>
+        <div className="relative z-10 bg-white rounded-lg shadow-xl p-8 text-center">
           <p className="text-red-600 mb-4">{error || 'アンケートが見つかりません'}</p>
           <button
             onClick={() => router.push('/')}
@@ -99,8 +101,10 @@ export default function ManagePage({ params }: { params: Promise<{ adminToken: s
     : '';
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen relative overflow-hidden py-8 px-4 sm:px-6 lg:px-8">
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-500 via-purple-600 to-indigo-600"></div>
+      
+      <div className="relative z-10 max-w-7xl mx-auto">
         <AdminDashboard
           survey={data.survey}
           responses={data.responses}

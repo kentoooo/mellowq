@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Survey, Response, FollowupQuestion } from '@/types';
 
 interface FollowupResponseProps {
@@ -24,6 +24,11 @@ export default function FollowupResponse({
     message: '',
     type: 'success'
   });
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ show: true, message, type });
@@ -91,7 +96,7 @@ export default function FollowupResponse({
           })}
         </div>
         <p className="text-sm text-gray-500 mt-4">
-          回答日時: {new Date(response.submittedAt).toLocaleString('ja-JP')}
+          回答日時: {isClient ? new Date(response.submittedAt).toLocaleString('ja-JP') : '読み込み中...'}
         </p>
       </div>
 
@@ -110,7 +115,7 @@ export default function FollowupResponse({
                     {followupQuestion.question}
                   </p>
                   <p className="text-sm text-gray-500 mt-2">
-                    質問日時: {new Date(followupQuestion.createdAt).toLocaleString('ja-JP')}
+                    質問日時: {isClient ? new Date(followupQuestion.createdAt).toLocaleString('ja-JP') : '読み込み中...'}
                   </p>
                 </div>
 
@@ -162,7 +167,7 @@ export default function FollowupResponse({
                     {followupQuestion.question}
                   </p>
                   <p className="text-sm text-gray-500 mt-1">
-                    質問日時: {new Date(followupQuestion.createdAt).toLocaleString('ja-JP')}
+                    質問日時: {isClient ? new Date(followupQuestion.createdAt).toLocaleString('ja-JP') : '読み込み中...'}
                   </p>
                 </div>
 
@@ -172,7 +177,7 @@ export default function FollowupResponse({
                     {followupQuestion.answer}
                   </p>
                   <p className="text-sm text-gray-500 mt-1">
-                    回答日時: {followupQuestion.answeredAt 
+                    回答日時: {isClient && followupQuestion.answeredAt 
                       ? new Date(followupQuestion.answeredAt).toLocaleString('ja-JP')
                       : '未回答'}
                   </p>

@@ -11,6 +11,7 @@ interface NotificationManagerProps {
 export default function NotificationManager({ onSubscribe, onSkip, onComplete }: NotificationManagerProps) {
   const [status, setStatus] = useState<'idle' | 'requesting' | 'granted' | 'denied' | 'unsupported'>('idle');
   const [error, setError] = useState<string | null>(null);
+  const [subscription, setSubscription] = useState<PushSubscription | null>(null);
 
   useEffect(() => {
     checkNotificationSupport();
@@ -63,6 +64,7 @@ export default function NotificationManager({ onSubscribe, onSkip, onComplete }:
       console.log('Push subscription created:', subscription);
 
       setStatus('granted');
+      setSubscription(subscription);
       onSubscribe(subscription);
       setTimeout(() => {
         onComplete();

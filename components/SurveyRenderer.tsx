@@ -19,6 +19,7 @@ export default function SurveyRenderer({ survey, onSubmit, isSubmitting }: Surve
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
   const [notificationSubscription, setNotificationSubscription] = useState<any>(null);
+  const [pendingSubscription, setPendingSubscription] = useState<any>(null);
 
   useEffect(() => {
     const initialAnswers: Record<string, string | string[]> = {};
@@ -97,6 +98,7 @@ export default function SurveyRenderer({ survey, onSubmit, isSubmitting }: Surve
   };
 
   const handleNotificationSubscription = (subscription: any) => {
+    console.log('NotificationSubscription received in SurveyRenderer:', subscription);
     setNotificationSubscription(subscription);
   };
 
@@ -112,14 +114,20 @@ export default function SurveyRenderer({ survey, onSubmit, isSubmitting }: Surve
   if (showNotificationPrompt && !isSubmitting) {
     return (
       <NotificationManager
-        onSubscribe={handleNotificationSubscription}
+        onSubscribe={(subscription) => {
+          console.log('Subscription received:', subscription);
+          setPendingSubscription(subscription);
+          handleNotificationSubscription(subscription);
+        }}
         onSkip={proceedWithoutNotification}
         onComplete={() => {
+          console.log('onComplete called, pendingSubscription:', pendingSubscription);
           const formattedAnswers: Answer[] = Object.entries(answers).map(([questionId, value]) => ({
             questionId,
             value,
           }));
-          onSubmit(formattedAnswers, notificationSubscription);
+          // pendingSubscriptionを使用して確実にsubscriptionを渡す
+          onSubmit(formattedAnswers, pendingSubscription);
         }}
       />
     );

@@ -22,6 +22,7 @@ export default function AdminDashboard({
   const [followupQuestion, setFollowupQuestion] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showFollowupForm, setShowFollowupForm] = useState<string | null>(null);
+  const [expandedFollowups, setExpandedFollowups] = useState<Set<string>>(new Set());
 
   const handleFollowupSubmit = async (responseId: string) => {
     if (!followupQuestion.trim()) return;
@@ -46,6 +47,16 @@ export default function AdminDashboard({
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     alert('URLをコピーしました');
+  };
+
+  const toggleFollowupExpand = (responseId: string) => {
+    const newExpanded = new Set(expandedFollowups);
+    if (newExpanded.has(responseId)) {
+      newExpanded.delete(responseId);
+    } else {
+      newExpanded.add(responseId);
+    }
+    setExpandedFollowups(newExpanded);
   };
 
   return (
@@ -149,7 +160,7 @@ export default function AdminDashboard({
                         e.stopPropagation();
                         setShowFollowupForm(response.id);
                       }}
-                      className="text-sm text-blue-600 hover:text-blue-800"
+                      className="px-3 py-1.5 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 transition-colors shadow-sm"
                     >
                       追加質問
                     </button>
@@ -175,32 +186,79 @@ export default function AdminDashboard({
                   )}
                 </div>
 
-                {/* フォローアップ履歴 */}
+                {/* フォローアップ履歴 - 折りたたみ式 */}
                 {response.followupQuestions && response.followupQuestions.length > 0 && (
-                  <div className="mt-4 space-y-3">
-                    <h4 className="text-sm font-medium text-gray-700">フォローアップ質問履歴</h4>
-                    {response.followupQuestions
-                      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                      .map((followup) => (
-                      <div key={followup.id} className="border-l-4 border-blue-200 pl-4 py-2 bg-blue-50 rounded-r">
-                        <div className="text-xs text-gray-500 mb-1">
-                          {new Date(followup.createdAt).toLocaleString('ja-JP')}
-                        </div>
-                        <div className="text-sm">
-                          <p className="font-medium text-gray-800 mb-1">Q: {followup.question}</p>
-                          {followup.answer ? (
-                            <div>
-                              <p className="text-green-800">A: {followup.answer}</p>
-                              <p className="text-xs text-green-600 mt-1">
-                                回答日時: {followup.answeredAt ? new Date(followup.answeredAt).toLocaleString('ja-JP') : '-'}
-                              </p>
-                            </div>
-                          ) : (
-                            <p className="text-orange-600 text-sm">未回答</p>
-                          )}
+                  <div className="mt-4 border border-blue-200 rounded-lg bg-blue-50">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFollowupExpand(response.id);
+                      }}
+                      className="w-full flex items-center justify-between p-3 text-left hover:bg-blue-100 rounded-lg transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className={`transform transition-transform text-blue-600 ${
+                          expandedFollowups.has(response.id) ? 'rotate-90' : ''
+                        }`}>
+                          ▶
+                        </span>
+                        <div>
+                          <span className="text-sm font-medium text-blue-800">
+                            フォローアップ質問履歴
+                          </span>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xs px-2 py-1 bg-blue-200 text-blue-700 rounded-full">
+                              {response.followupQuestions.length}件
+                            </span>
+                            <span className="text-xs text-blue-600">
+                              {response.followupQuestions.filter(fq => fq.answer).length}件回答済み
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    ))}
+                      <span className="text-xs text-blue-500">
+                        {expandedFollowups.has(response.id) ? '閉じる' : '詳細を見る'}
+                      </span>
+                    </button>
+                    
+                    {expandedFollowups.has(response.id) && (
+                      <div className="space-y-3 px-3 pt-3 pb-3 bg-white rounded-b-lg border-t border-blue-200">
+                        {response.followupQuestions
+                          .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+                          .map((followup, index) => (
+                          <div key={followup.id} className="space-y-2">
+                            {/* 質問部分 */}
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                              <div className="flex justify-between items-start mb-2">
+                                <span className="text-xs font-medium text-blue-600">質問 #{index + 1}</span>
+                                <span className="text-xs text-gray-500">
+                                  {new Date(followup.createdAt).toLocaleString('ja-JP')}
+                                </span>
+                              </div>
+                              <p className="text-sm font-medium text-gray-800">{followup.question}</p>
+                            </div>
+
+                            {/* 回答部分 */}
+                            {followup.answer ? (
+                              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                                <div className="flex justify-between items-start mb-2">
+                                  <span className="text-xs font-medium text-green-600">回答</span>
+                                  <span className="text-xs text-gray-500">
+                                    {followup.answeredAt ? new Date(followup.answeredAt).toLocaleString('ja-JP') : '-'}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-gray-800">{followup.answer}</p>
+                              </div>
+                            ) : (
+                              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                                <span className="text-xs font-medium text-orange-600">未回答</span>
+                                <p className="text-sm text-orange-700 mt-1">回答待ちです</p>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 

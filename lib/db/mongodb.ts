@@ -11,12 +11,22 @@ if (!process.env.MONGODB_URI) {
 }
 
 const uri = process.env.MONGODB_URI;
+console.log('MongoDB URI check:', {
+  hasUri: !!uri,
+  protocol: uri?.split('://')[0],
+  isAtlas: uri?.includes('mongodb.net'),
+  length: uri?.length
+});
 const options = {
   serverSelectionTimeoutMS: 5000, // 5秒でタイムアウト
   connectTimeoutMS: 5000,
   socketTimeoutMS: 5000,
   maxPoolSize: 10, // 接続プールサイズ
   retryWrites: true,
+  // SSL/TLS設定を追加
+  tls: true,
+  tlsAllowInvalidCertificates: false,
+  tlsAllowInvalidHostnames: false,
 };
 
 let client: MongoClient;
@@ -34,7 +44,16 @@ if (process.env.NODE_ENV === 'development') {
   clientPromise = globalWithMongo._mongoClientPromise;
 } else {
   client = new MongoClient(uri, options);
-  clientPromise = client.connect();
+  clientPromise = client.connect().catch(error => {
+    console.error('MongoDB connection failed:', {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+      errno: error.errno,
+      syscall: error.syscall
+    });
+    throw error;
+  });
 }
 
 export default clientPromise;

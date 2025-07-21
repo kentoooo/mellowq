@@ -12,11 +12,10 @@ export default function SurveyCreator({ onSubmit, isSubmitting }: SurveyCreatorP
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [showPreview, setShowPreview] = useState(false);
 
   const addQuestion = (type: Question['type']) => {
     const newQuestion: Question = {
-      id: `q_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `q_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`,
       type,
       text: '',
       options: type !== 'text' ? [''] : undefined,
@@ -69,58 +68,6 @@ export default function SurveyCreator({ onSubmit, isSubmitting }: SurveyCreatorP
     }
   };
 
-  if (showPreview) {
-    return (
-      <div className="bg-white shadow rounded-lg p-6">
-        <div className="mb-6">
-          <button
-            onClick={() => setShowPreview(false)}
-            className="text-blue-600 hover:text-blue-800"
-          >
-            ← 編集に戻る
-          </button>
-        </div>
-        <h2 className="text-2xl font-bold mb-2">{title}</h2>
-        <p className="text-gray-600 mb-6">{description}</p>
-        {questions.map((question, index) => (
-          <div key={question.id} className="mb-6">
-            <p className="font-medium mb-2">
-              {index + 1}. {question.text}
-              {question.required && <span className="text-red-500 ml-1">*</span>}
-            </p>
-            {question.type === 'text' && (
-              <input
-                type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                placeholder="回答を入力"
-                disabled
-              />
-            )}
-            {question.type === 'radio' && question.options && (
-              <div className="space-y-2">
-                {question.options.map((option, i) => (
-                  <label key={i} className="flex items-center">
-                    <input type="radio" name={`question-${index}`} disabled className="mr-2" />
-                    <span>{option}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-            {question.type === 'checkbox' && question.options && (
-              <div className="space-y-2">
-                {question.options.map((option, i) => (
-                  <label key={i} className="flex items-center">
-                    <input type="checkbox" disabled className="mr-2" />
-                    <span>{option}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    );
-  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -165,9 +112,12 @@ export default function SurveyCreator({ onSubmit, isSubmitting }: SurveyCreatorP
               <button
                 type="button"
                 onClick={() => removeQuestion(index)}
-                className="text-red-600 hover:text-red-800"
+                className="text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100"
+                title="質問を削除"
               >
-                削除
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
             <div className="space-y-3">
@@ -208,9 +158,12 @@ export default function SurveyCreator({ onSubmit, isSubmitting }: SurveyCreatorP
                         <button
                           type="button"
                           onClick={() => removeOption(index, optionIndex)}
-                          className="px-3 py-2 text-red-600 hover:text-red-800"
+                          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
+                          title="選択肢を削除"
                         >
-                          削除
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
                         </button>
                       )}
                     </div>
@@ -253,15 +206,7 @@ export default function SurveyCreator({ onSubmit, isSubmitting }: SurveyCreatorP
         </div>
       </div>
 
-      <div className="flex justify-between">
-        <button
-          type="button"
-          onClick={() => setShowPreview(true)}
-          className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
-          disabled={!title || !description || questions.length === 0}
-        >
-          プレビュー
-        </button>
+      <div className="flex justify-end">
         <button
           type="submit"
           disabled={isSubmitting || !title || !description || questions.length === 0}

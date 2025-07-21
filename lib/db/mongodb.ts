@@ -11,7 +11,13 @@ if (!process.env.MONGODB_URI) {
 }
 
 const uri = process.env.MONGODB_URI;
-const options = {};
+const options = {
+  serverSelectionTimeoutMS: 5000, // 5秒でタイムアウト
+  connectTimeoutMS: 5000,
+  socketTimeoutMS: 5000,
+  maxPoolSize: 10, // 接続プールサイズ
+  retryWrites: true,
+};
 
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
@@ -34,6 +40,15 @@ if (process.env.NODE_ENV === 'development') {
 export default clientPromise;
 
 export async function getDb(): Promise<Db> {
-  const client = await clientPromise;
-  return client.db();
+  try {
+    console.log('MongoDB接続試行中...');
+    const startTime = Date.now();
+    const client = await clientPromise;
+    const duration = Date.now() - startTime;
+    console.log(`MongoDB接続成功 (${duration}ms)`);
+    return client.db();
+  } catch (error) {
+    console.error('MongoDB接続エラー:', error);
+    throw error;
+  }
 }

@@ -28,7 +28,6 @@ export default function AdminDashboard({
   const [followupQuestion, setFollowupQuestion] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showFollowupForm, setShowFollowupForm] = useState<string | null>(null);
-  const [expandedFollowups, setExpandedFollowups] = useState<Set<string>>(new Set());
   const [isClient, setIsClient] = useState(false);
   const [showCopyToast, setShowCopyToast] = useState(false);
   const [followupToast, setFollowupToast] = useState<{ show: boolean; message: string; type: 'success' | 'info' }>({
@@ -80,15 +79,6 @@ export default function AdminDashboard({
     setTimeout(() => setShowCopyToast(false), 1000);
   };
 
-  const toggleFollowupExpand = (responseId: string) => {
-    const newExpanded = new Set(expandedFollowups);
-    if (newExpanded.has(responseId)) {
-      newExpanded.delete(responseId);
-    } else {
-      newExpanded.add(responseId);
-    }
-    setExpandedFollowups(newExpanded);
-  };
 
   const toggleTextAnswersExpand = (questionId: string) => {
     const newExpanded = new Set(expandedTextAnswers);
@@ -189,7 +179,7 @@ export default function AdminDashboard({
   };
 
   return (
-    <div className="space-y-6 relative">
+    <div className="space-y-6 relative max-w-7xl mx-auto">
       {/* 右上トースト通知 */}
       {followupToast.show && (
         <div className="fixed top-6 right-6 z-[9999] animate-slide-in-right">
@@ -237,10 +227,12 @@ export default function AdminDashboard({
         </div>
       </div>
 
-      {/* 統計情報 */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-xl font-semibold mb-4">回答統計</h2>
-        <p className="text-gray-600 mb-4">総回答数: {stats.totalResponses}</p>
+      {/* 2カラムレイアウト */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* 左カラム: 統計情報 */}
+        <div className="bg-white shadow rounded-lg p-6">
+          <h2 className="text-xl font-semibold mb-4">回答統計</h2>
+          <p className="text-gray-600 mb-4">総回答数: {stats.totalResponses}</p>
         
         <div className="space-y-6">
           {stats.questionsStats.map((questionStat: any) => {
@@ -253,14 +245,11 @@ export default function AdminDashboard({
             return (
               <div key={questionStat.questionId} className="border-t pt-4">
                 <h3 className="font-medium mb-4">{questionStat.text}</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  回答数: {questionStat.totalAnswers}
-                </p>
                 
                 {/* 円グラフ（ラジオボタン・チェックボックス用） */}
                 {isChartType && questionStat.optionCounts && isClient ? (
                   <div className="bg-gray-50 p-6 rounded-lg">
-                    <div style={{ height: '400px' }}>
+                    <div style={{ height: '300px' }}>
                       <Pie 
                         data={createPieChartData(questionStat.optionCounts)} 
                         options={chartOptions}
@@ -324,11 +313,11 @@ export default function AdminDashboard({
               </div>
             );
           })}
+          </div>
         </div>
-      </div>
 
-      {/* 回答一覧 */}
-      <div className="bg-white shadow rounded-lg p-6">
+        {/* 右カラム: 回答一覧 */}
+        <div className="bg-white shadow rounded-lg p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">回答一覧</h2>
           {responses.length > 0 && (
@@ -376,14 +365,24 @@ export default function AdminDashboard({
                     </p>
                     {response.pushSubscription && (
                       <span className="text-xs bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">
-                        通知
+                        通知OK
                       </span>
+                    )}
+                    {response.followupQuestions && response.followupQuestions.length > 0 && (
+                      <>
+                        {response.followupQuestions.some(fq => !fq.answer) ? (
+                          <span className="text-xs bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full">
+                            回答待ち
+                          </span>
+                        ) : (
+                          <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">
+                            回答済み
+                          </span>
+                        )}
+                      </>
                     )}
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs text-gray-500">
-                      {expandedResponses.has(response.id) ? '折りたたむ' : '詳細を見る'}
-                    </span>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -416,43 +415,26 @@ export default function AdminDashboard({
                   </div>
                 )}
 
-                {/* フォローアップ履歴 - 折りたたみ式 */}
+                {/* フォローアップ履歴 */}
                 {expandedResponses.has(response.id) && response.followupQuestions && response.followupQuestions.length > 0 && (
                   <div className="mt-4 border border-blue-200 rounded-lg bg-blue-50">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleFollowupExpand(response.id);
-                      }}
-                      className="w-full flex items-center justify-between p-3 text-left hover:bg-blue-100 rounded-lg transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className={`transform transition-transform text-blue-600 ${
-                          expandedFollowups.has(response.id) ? 'rotate-90' : ''
-                        }`}>
-                          ▶
+                    <div className="p-3 bg-blue-100 rounded-t-lg">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-blue-800">
+                          フォローアップ質問履歴
                         </span>
-                        <div>
-                          <span className="text-sm font-medium text-blue-800">
-                            フォローアップ質問履歴
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs px-2 py-1 bg-blue-200 text-blue-700 rounded-full">
+                            {response.followupQuestions.length}件
                           </span>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-xs px-2 py-1 bg-blue-200 text-blue-700 rounded-full">
-                              {response.followupQuestions.length}件
-                            </span>
-                            <span className="text-xs text-blue-600">
-                              {response.followupQuestions.filter(fq => fq.answer).length}件回答済み
-                            </span>
-                          </div>
+                          <span className="text-xs text-blue-600">
+                            {response.followupQuestions.filter(fq => fq.answer).length}件回答済み
+                          </span>
                         </div>
                       </div>
-                      <span className="text-xs text-blue-500">
-                        {expandedFollowups.has(response.id) ? '閉じる' : '詳細を見る'}
-                      </span>
-                    </button>
+                    </div>
                     
-                    {expandedFollowups.has(response.id) && (
-                      <div className="space-y-3 px-3 pt-3 pb-3 bg-white rounded-b-lg border-t border-blue-200">
+                    <div className="space-y-3 p-3 bg-white rounded-b-lg">
                         {response.followupQuestions
                           .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
                           .map((followup, index) => (
@@ -487,8 +469,7 @@ export default function AdminDashboard({
                             )}
                           </div>
                         ))}
-                      </div>
-                    )}
+                    </div>
                   </div>
                 )}
 
@@ -527,6 +508,7 @@ export default function AdminDashboard({
             ))}
           </div>
         )}
+        </div>
       </div>
 
     </div>

@@ -61,6 +61,12 @@ export async function POST(
         : sanitizeText(answer.value as string)
     }));
 
+    // デバッグログ
+    console.log('=== RESPONSE SAVE DEBUG ===');
+    console.log('notificationSubscription received:', notificationSubscription);
+    console.log('notificationSubscription type:', typeof notificationSubscription);
+    console.log('notificationSubscription keys:', notificationSubscription ? Object.keys(notificationSubscription) : 'null');
+    
     const response = {
       surveyId,
       anonymousId,
@@ -69,6 +75,12 @@ export async function POST(
       pushSubscription: notificationSubscription as PushSubscription | undefined,
       submittedAt: new Date(),
     };
+    
+    console.log('Response object to save:', {
+      surveyId: response.surveyId,
+      hasPushSubscription: !!response.pushSubscription,
+      pushSubscriptionKeys: response.pushSubscription ? Object.keys(response.pushSubscription) : 'null'
+    });
 
     const responsesCollection = await getResponsesCollection();
     const result = await responsesCollection.insertOne(response as ResponseDocument);

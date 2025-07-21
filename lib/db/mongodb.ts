@@ -23,8 +23,8 @@ const options = {
   socketTimeoutMS: 5000,
   maxPoolSize: 10, // 接続プールサイズ
   retryWrites: true,
-  // SSL/TLS設定を簡素化
-  ssl: true,
+  // 開発環境ではSSLを無効化
+  ...(process.env.NODE_ENV === 'development' ? {} : { ssl: true }),
 };
 
 let client: MongoClient;

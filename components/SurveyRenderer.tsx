@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { Survey, Answer } from '@/types';
 
@@ -18,8 +18,7 @@ export default function SurveyRenderer({ survey, onSubmit, isSubmitting }: Surve
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
-  const [notificationSubscription, setNotificationSubscription] = useState<any>(null);
-  const [pendingSubscription, setPendingSubscription] = useState<any>(null);
+  const subscriptionRef = useRef<any>(null);
 
   useEffect(() => {
     const initialAnswers: Record<string, string | string[]> = {};
@@ -94,12 +93,12 @@ export default function SurveyRenderer({ survey, onSubmit, isSubmitting }: Surve
       value,
     }));
 
-    onSubmit(formattedAnswers, notificationSubscription);
+    onSubmit(formattedAnswers, subscriptionRef.current);
   };
 
   const handleNotificationSubscription = (subscription: any) => {
     console.log('NotificationSubscription received in SurveyRenderer:', subscription);
-    setNotificationSubscription(subscription);
+    subscriptionRef.current = subscription;
   };
 
   const proceedWithoutNotification = () => {
@@ -116,18 +115,16 @@ export default function SurveyRenderer({ survey, onSubmit, isSubmitting }: Surve
       <NotificationManager
         onSubscribe={(subscription) => {
           console.log('Subscription received:', subscription);
-          setPendingSubscription(subscription);
           handleNotificationSubscription(subscription);
         }}
         onSkip={proceedWithoutNotification}
         onComplete={() => {
-          console.log('onComplete called, pendingSubscription:', pendingSubscription);
+          console.log('onComplete called, subscription:', subscriptionRef.current);
           const formattedAnswers: Answer[] = Object.entries(answers).map(([questionId, value]) => ({
             questionId,
             value,
           }));
-          // pendingSubscriptionを使用して確実にsubscriptionを渡す
-          onSubmit(formattedAnswers, pendingSubscription);
+          onSubmit(formattedAnswers, subscriptionRef.current);
         }}
       />
     );

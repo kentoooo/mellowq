@@ -21,23 +21,75 @@ export default function ManagePage({ params }: { params: Promise<{ adminToken: s
   const [data, setData] = useState<AdminData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [pollCount, setPollCount] = useState(0);
 
   useEffect(() => {
     fetchAdminData();
   }, [adminToken]);
 
-  const fetchAdminData = async () => {
+  // 定期的な自動更新（20秒ごと、最大20回）
+  useEffect(() => {
+    if (pollCount >= 20) {
+      return; // 20回以上はポーリングしない
+    }
+
+    const interval = setInterval(() => {
+      if (!loading && !isRefreshing) {
+        fetchAdminData(true);
+        setPollCount(prev => prev + 1);
+      }
+    }, 20000);
+
+    return () => clearInterval(interval);
+  }, [loading, isRefreshing, pollCount]);
+
+  // フォーカス時の自動更新
+  useEffect(() => {
+    const handleFocus = () => {
+      if (!loading && !isRefreshing && lastUpdate) {
+        const timeSinceUpdate = Date.now() - lastUpdate.getTime();
+        // 最後の更新から10秒以上経過していたら更新
+        if (timeSinceUpdate > 10000) {
+          fetchAdminData(true);
+        }
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        handleFocus();
+      }
+    });
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleFocus);
+    };
+  }, [loading, isRefreshing, lastUpdate]);
+
+  const fetchAdminData = async (isRefresh = false) => {
     try {
+      if (isRefresh) {
+        setIsRefreshing(true);
+      }
+      
       const response = await fetch(`/api/admin/${adminToken}/responses`);
       if (!response.ok) {
         throw new Error('Failed to fetch admin data');
       }
       const adminData = await response.json();
       setData(adminData);
+      setLastUpdate(new Date());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setLoading(false);
+      if (isRefresh) {
+        setIsRefreshing(false);
+      }
     }
   };
 
@@ -111,6 +163,9 @@ export default function ManagePage({ params }: { params: Promise<{ adminToken: s
           stats={data.stats}
           surveyUrl={surveyUrl}
           onFollowupSubmit={handleFollowupSubmit}
+          isRefreshing={isRefreshing}
+          lastUpdate={lastUpdate}
+          onRefresh={() => fetchAdminData(true)}
         />
       </div>
     </div>

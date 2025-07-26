@@ -16,6 +16,9 @@ interface AdminDashboardProps {
   stats: any;
   surveyUrl: string;
   onFollowupSubmit: (responseId: string, question: string) => Promise<any>;
+  isRefreshing?: boolean;
+  lastUpdate?: Date | null;
+  onRefresh?: () => void;
 }
 
 export default function AdminDashboard({
@@ -24,6 +27,9 @@ export default function AdminDashboard({
   stats,
   surveyUrl,
   onFollowupSubmit,
+  isRefreshing = false,
+  lastUpdate,
+  onRefresh,
 }: AdminDashboardProps) {
   const [followupQuestion, setFollowupQuestion] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -321,7 +327,7 @@ export default function AdminDashboard({
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">回答一覧</h2>
           {responses.length > 0 && (
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
               <button
                 onClick={expandAllResponses}
                 className="px-3 py-1.5 text-xs bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors font-medium"

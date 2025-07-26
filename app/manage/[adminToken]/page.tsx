@@ -119,6 +119,33 @@ export default function ManagePage({ params }: { params: Promise<{ adminToken: s
     }
   };
 
+  const handleSendReminder = async (followupQuestionId: string) => {
+    try {
+      const response = await fetch(`/api/admin/${adminToken}/reminder`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ followupQuestionId }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to send reminder');
+      }
+
+      const result = await response.json();
+      
+      // データを再取得
+      await fetchAdminData();
+      
+      return result;
+    } catch (error) {
+      console.error('Error sending reminder:', error);
+      throw error;
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
@@ -163,6 +190,7 @@ export default function ManagePage({ params }: { params: Promise<{ adminToken: s
           stats={data.stats}
           surveyUrl={surveyUrl}
           onFollowupSubmit={handleFollowupSubmit}
+          onSendReminder={handleSendReminder}
           isRefreshing={isRefreshing}
           lastUpdate={lastUpdate}
           onRefresh={() => fetchAdminData(true)}

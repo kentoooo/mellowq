@@ -16,6 +16,7 @@ interface AdminDashboardProps {
   stats: any;
   surveyUrl: string;
   onFollowupSubmit: (responseId: string, question: string) => Promise<any>;
+  onSendReminder?: (followupQuestionId: string) => Promise<any>;
   isRefreshing?: boolean;
   lastUpdate?: Date | null;
   onRefresh?: () => void;
@@ -27,6 +28,7 @@ export default function AdminDashboard({
   stats,
   surveyUrl,
   onFollowupSubmit,
+  onSendReminder,
   isRefreshing = false,
   lastUpdate,
   onRefresh,
@@ -43,6 +45,7 @@ export default function AdminDashboard({
   });
   const [expandedTextAnswers, setExpandedTextAnswers] = useState<Set<string>>(new Set());
   const [expandedResponses, setExpandedResponses] = useState<Set<string>>(new Set());
+  const [sendingReminder, setSendingReminder] = useState<string | null>(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -113,6 +116,22 @@ export default function AdminDashboard({
 
   const collapseAllResponses = () => {
     setExpandedResponses(new Set());
+  };
+
+  const handleReminderClick = async (followupId: string) => {
+    if (!onSendReminder || sendingReminder) return;
+    
+    setSendingReminder(followupId);
+    
+    try {
+      await onSendReminder(followupId);
+      showFollowupToast('リマインダーを送信しました', 'success');
+    } catch (error) {
+      console.error('Reminder error:', error);
+      showFollowupToast('リマインダーの送信に失敗しました', 'info');
+    } finally {
+      setSendingReminder(null);
+    }
   };
 
   // 円グラフ用のカラーパレット
@@ -469,8 +488,33 @@ export default function AdminDashboard({
                               </div>
                             ) : (
                               <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                                <span className="text-xs font-medium text-orange-600">未回答</span>
-                                <p className="text-sm text-orange-700 mt-1">回答待ちです</p>
+                                <div className="flex justify-between items-center">
+                                  <div>
+                                    <span className="text-xs font-medium text-orange-600">未回答</span>
+                                    <p className="text-sm text-orange-700 mt-1">回答待ちです</p>
+                                  </div>
+                                  {onSendReminder && response.pushSubscription && (
+                                    <button
+                                      onClick={() => handleReminderClick(followup.id)}
+                                      disabled={sendingReminder === followup.id}
+                                      className="px-3 py-1.5 text-xs bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors disabled:bg-gray-400 flex items-center gap-1"
+                                    >
+                                      {sendingReminder === followup.id ? (
+                                        <>
+                                          <div className="animate-spin rounded-full h-2.5 w-2.5 border-b-2 border-white"></div>
+                                          送信中...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                          </svg>
+                                          再通知
+                                        </>
+                                      )}
+                                    </button>
+                                  )}
+                                </div>
                               </div>
                             )}
                           </div>

@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import clientPromise from '@/lib/db/mongodb';
 import { ObjectId } from 'mongodb';
+import { 
+  getSurveysCollection, 
+  getResponsesCollection,
+  getFollowupQuestionsCollection
+} from '@/lib/db/models';
 import { sendPushNotification } from '@/lib/utils/web-push';
 
 export async function POST(
@@ -19,11 +23,9 @@ export async function POST(
       );
     }
 
-    const client = await clientPromise;
-    const db = client.db('mellowq');
-    
     // adminTokenでアンケートを検証
-    const survey = await db.collection('surveys').findOne({ 
+    const surveysCollection = await getSurveysCollection();
+    const survey = await surveysCollection.findOne({ 
       adminToken: adminToken 
     });
     if (!survey) {
@@ -31,9 +33,10 @@ export async function POST(
     }
 
     // フォローアップ質問を取得
+    const followupQuestionsCollection = await getFollowupQuestionsCollection();
     let followupQuestion;
     try {
-      followupQuestion = await db.collection('followup_questions').findOne({
+      followupQuestion = await followupQuestionsCollection.findOne({
         _id: new ObjectId(followupQuestionId)
       });
     } catch (error) {
@@ -46,16 +49,13 @@ export async function POST(
     }
     
     // セキュリティチェック：このフォローアップ質問が本当にこのアンケートのものか確認
-    
+    const responsesCollection = await getResponsesCollection();
     let relatedResponse;
-    let responseId;
     try {
-      // responseIdがすでにObjectIdかどうかチェック
-      responseId = followupQuestion.responseId instanceof ObjectId 
-        ? followupQuestion.responseId 
-        : new ObjectId(followupQuestion.responseId);
+      // responseIdをObjectIdに変換
+      const responseId = new ObjectId(followupQuestion.responseId);
       
-      relatedResponse = await db.collection('responses').findOne({
+      relatedResponse = await responsesCollection.findOne({
         _id: responseId,
         surveyId: survey._id.toHexString()
       });
@@ -83,7 +83,7 @@ export async function POST(
     const payload = {
       title: 'MellowQ - 追加質問のリマインダー',
       body: 'アンケートに関する追加質問にまだ回答されていません。お時間のある時にご回答ください。',
-      url: `${process.env.NEXT_PUBLIC_BASE_URL}/followup/${followupQuestion.responseToken}`,
+      url: `${process.env.NEXT_PUBLIC_BASE_URL}/followup/${relatedResponse.responseToken}`,
     };
 
     try {
@@ -94,13 +94,15 @@ export async function POST(
       }
       
       // リマインダー送信履歴を記録
-      await db.collection('followup_questions').updateOne(
+      await followupQuestionsCollection.updateOne(
         { _id: new ObjectId(followupQuestionId) },
         { 
           $set: { 
-            lastReminderSentAt: new Date(),
-            reminderCount: (followupQuestion.reminderCount || 0) + 1
-          } 
+            lastReminderSentAt: new Date()
+          },
+          $inc: {
+            reminderCount: 1
+          }
         }
       );
 

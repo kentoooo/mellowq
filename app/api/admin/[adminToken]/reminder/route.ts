@@ -80,10 +80,15 @@ export async function POST(
     }
 
     // プッシュ通知を送信
+    // ポート番号を正しく取得
+    const host = request.headers.get('host') || 'localhost:3000';
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    const baseUrl = `${protocol}://${host}`;
+    
     const payload = {
       title: 'MellowQ - 追加質問のリマインダー',
       body: 'アンケートに関する追加質問にまだ回答されていません。お時間のある時にご回答ください。',
-      url: `${process.env.NEXT_PUBLIC_BASE_URL}/followup/${relatedResponse.responseToken}`,
+      url: `${baseUrl}/followup/${relatedResponse.responseToken}`,
     };
 
     try {

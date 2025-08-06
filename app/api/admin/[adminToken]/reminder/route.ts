@@ -1,19 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/db/mongodb';
 import { ObjectId } from 'mongodb';
-import webpush from 'web-push';
-
-// VAPIDキーの設定
-const vapidKeys = {
-  publicKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  privateKey: process.env.VAPID_PRIVATE_KEY!,
-};
-
-webpush.setVapidDetails(
-  'mailto:noreply@mellowq.com',
-  vapidKeys.publicKey,
-  vapidKeys.privateKey
-);
+import { sendPushNotification } from '@/lib/utils/web-push';
 
 export async function POST(
   request: NextRequest,
@@ -92,18 +80,18 @@ export async function POST(
     }
 
     // プッシュ通知を送信
-    const payload = JSON.stringify({
+    const payload = {
       title: 'MellowQ - 追加質問のリマインダー',
       body: 'アンケートに関する追加質問にまだ回答されていません。お時間のある時にご回答ください。',
-      icon: '/icon-192x192.png',
-      badge: '/icon-192x192.png',
-      data: {
-        url: `${process.env.NEXT_PUBLIC_BASE_URL}/followup/${followupQuestion.responseToken}`,
-      },
-    });
+      url: `${process.env.NEXT_PUBLIC_BASE_URL}/followup/${followupQuestion.responseToken}`,
+    };
 
     try {
-      await webpush.sendNotification(relatedResponse.pushSubscription, payload);
+      const notificationSent = await sendPushNotification(relatedResponse.pushSubscription, payload);
+      
+      if (!notificationSent) {
+        throw new Error('Failed to send notification');
+      }
       
       // リマインダー送信履歴を記録
       await db.collection('followup_questions').updateOne(

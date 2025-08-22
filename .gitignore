@@ -1,31 +1,108 @@
+# === Web版 (Next.js) ===
 # Node.js dependencies
-node_modules/
+web/node_modules/
 
 # Output of 'next build'
-.next/
-out/
+web/.next/
+web/out/
 
 # Local environment variables
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+web/.env.local
+web/.env.development.local
+web/.env.test.local
+web/.env.production.local
 
 # Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
+web/npm-debug.log*
+web/yarn-debug.log*
+web/yarn-error.log*
+web/pnpm-debug.log*
 
 # Optional npm cache directory
-.npm/
+web/.npm/
 
 # Optional eslint cache
-.eslintcache
+web/.eslintcache
 
 # Next.js static folder (optional if used during export)
-public/static/
+web/public/static/
 
+# Optional: ignore turbo cache
+web/.turbo/
+
+# Optional: ignore next telemetry
+web/.next-tasks/
+
+# Docker volumes and data
+web/docker-data/
+
+# === Mobile版 (Flutter) ===
+# Miscellaneous
+mobile/*.class
+mobile/*.log
+mobile/*.pyc
+mobile/*.swp
+mobile/.DS_Store
+mobile/.atom/
+mobile/.buildlog/
+mobile/.history
+mobile/.svn/
+mobile/migrate_working_dir/
+
+# IntelliJ related
+mobile/*.iml
+mobile/*.ipr
+mobile/*.iws
+mobile/.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+mobile/.vscode/
+
+# Flutter/Dart/Pub related
+mobile/**/doc/api/
+mobile/**/ios/Flutter/.last_build_id
+mobile/.dart_tool/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.packages
+mobile/.pub-cache/
+mobile/.pub/
+mobile/build/
+
+# Symbolication related
+mobile/app.*.symbols
+
+# Obfuscation related
+mobile/app.*.map.json
+
+# Android Studio will place build artifacts here
+mobile/android/app/debug
+mobile/android/app/profile
+mobile/android/app/release
+
+# iOS related
+mobile/ios/Pods/
+mobile/ios/.symlinks/
+mobile/ios/Flutter/Flutter.framework
+mobile/ios/Flutter/Flutter.podspec
+mobile/ios/Flutter/Generated.xcconfig
+mobile/ios/Flutter/app.flx
+mobile/ios/Flutter/app.zip
+mobile/ios/Flutter/flutter_assets/
+mobile/ios/ServiceDefinitions.json
+mobile/ios/Runner/GeneratedPluginRegistrant.*
+
+# macOS related
+mobile/macos/Flutter/GeneratedPluginRegistrant.swift
+
+# Firebase (if used)
+mobile/ios/firebase_app_id_file.json
+mobile/android/app/google-services.json
+mobile/ios/GoogleService-Info.plist
+
+# === 共通設定 ===
 # VSCode settings (optional)
 .vscode/
 
@@ -35,12 +112,6 @@ public/static/
 # Optional: ignore coverage reports
 coverage/
 
-# Optional: ignore turbo cache
-.turbo/
-
-# Optional: ignore next telemetry
-.next-tasks/
-
-# Docker volumes and data
-docker-data/
+# Development logs
+dev.log
 

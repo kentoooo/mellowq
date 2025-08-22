@@ -261,9 +261,6 @@ export default function AdminDashboard({
               onClick={() => setShowQRCode(!showQRCode)}
               className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm flex items-center gap-1"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h2M4 4h4m0 0V2m0 2h2m0 0h2m0 0v2M4 7h4M4 20h4m0 0v-2m0 2h2m0 0h2" />
-              </svg>
               {showQRCode ? 'QRコード非表示' : 'QRコード表示'}
             </button>
           </div>

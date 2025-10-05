@@ -15,6 +15,7 @@ export interface SurveyDocument extends Omit<Survey, 'id'> {
 
 export interface ResponseDocument extends Omit<Response, 'id'> {
   _id: ObjectId;
+  fcmToken?: string; // Firebase Cloud Messaging token for mobile push notifications
 }
 
 export interface FollowupQuestionDocument extends Omit<FollowupQuestion, 'id'> {

@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
-import { 
-  getSurveysCollection, 
+import {
+  getSurveysCollection,
   getResponsesCollection,
   getFollowupQuestionsCollection,
   FollowupQuestionDocument
 } from '@/lib/db/models';
 import { sendPushNotification } from '@/lib/utils/web-push';
+import { sendFCMNotification } from '@/lib/utils/fcm-push';
 
 export async function POST(
   request: NextRequest,
@@ -72,21 +73,37 @@ export async function POST(
 
     // Push通知の送信
     let notificationSent = false;
+    let fcmNotificationSent = false;
+
+    // ポート番号を正しく取得
+    const host = request.headers.get('host') || 'localhost:3000';
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    const baseUrl = `${protocol}://${host}`;
+
+    console.log('Push notification baseUrl:', baseUrl);
+
+    // FCM通知（モバイルアプリ用）
+    if ((response as any).fcmToken) {
+      const fcmPayload = {
+        title: '新しい追加質問があります',
+        body: question.substring(0, 100) + (question.length > 100 ? '...' : ''),
+        url: `${baseUrl}/followup/${response.responseToken}`,
+        responseToken: response.responseToken,
+      };
+
+      console.log('Sending FCM notification with payload:', fcmPayload);
+      fcmNotificationSent = await sendFCMNotification((response as any).fcmToken, fcmPayload);
+    }
+
+    // Web Push通知（ウェブアプリ用）
     if (response.pushSubscription) {
-      // ポート番号を正しく取得
-      const host = request.headers.get('host') || 'localhost:3000';
-      const protocol = host.includes('localhost') ? 'http' : 'https';
-      const baseUrl = `${protocol}://${host}`;
-      
-      console.log('Push notification baseUrl:', baseUrl);
-      
       const payload = {
         title: '新しい追加質問があります',
         body: question.substring(0, 100) + (question.length > 100 ? '...' : ''),
         url: `${baseUrl}/followup/${response.responseToken}`,
       };
 
-      console.log('Sending push notification with payload:', payload);
+      console.log('Sending web push notification with payload:', payload);
       notificationSent = await sendPushNotification(response.pushSubscription, payload);
     }
 
@@ -94,6 +111,7 @@ export async function POST(
       success: true,
       followupQuestionId: result.insertedId.toHexString(),
       notificationSent,
+      fcmNotificationSent,
     });
   } catch (error) {
     console.error('Error creating followup question:', error);

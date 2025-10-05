@@ -22,7 +22,7 @@ export async function POST(
 
     const { surveyId } = await params;
     const body = await request.json();
-    const { answers, notificationSubscription } = body;
+    const { answers, notificationSubscription, fcmToken } = body;
 
     if (!isValidObjectId(surveyId)) {
       return createErrorResponse(
@@ -66,20 +66,23 @@ export async function POST(
     console.log('notificationSubscription received:', notificationSubscription);
     console.log('notificationSubscription type:', typeof notificationSubscription);
     console.log('notificationSubscription keys:', notificationSubscription ? Object.keys(notificationSubscription) : 'null');
-    
+    console.log('fcmToken received:', fcmToken);
+
     const response = {
       surveyId,
       anonymousId,
       responseToken,
       answers: sanitizedAnswers,
       pushSubscription: notificationSubscription as PushSubscription | undefined,
+      fcmToken: fcmToken as string | undefined, // FCM token for mobile push notifications
       submittedAt: new Date(),
     };
-    
+
     console.log('Response object to save:', {
       surveyId: response.surveyId,
       hasPushSubscription: !!response.pushSubscription,
-      pushSubscriptionKeys: response.pushSubscription ? Object.keys(response.pushSubscription) : 'null'
+      pushSubscriptionKeys: response.pushSubscription ? Object.keys(response.pushSubscription) : 'null',
+      hasFcmToken: !!response.fcmToken
     });
 
     const responsesCollection = await getResponsesCollection();

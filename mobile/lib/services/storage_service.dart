@@ -107,6 +107,22 @@ class StorageService {
     );
   }
 
+  static Future<void> updateResponse(SurveyResponse response) async {
+    final db = await database;
+    await db.update(
+      'responses',
+      response.toMap(),
+      where: 'id = ?',
+      whereArgs: [response.id],
+    );
+  }
+
+  static Future<String?> getDeviceToken() async {
+    // TODO: 実際のデバイストークンを取得する処理を実装
+    // 現在は仮のトークンを返す
+    return 'device_token_placeholder';
+  }
+
   static Future<void> incrementRetryCount(String responseId) async {
     final db = await database;
     await db.rawUpdate(

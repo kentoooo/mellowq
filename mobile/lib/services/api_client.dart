@@ -6,7 +6,10 @@ import '../data/models/followup_question.dart';
 import '../core/errors/api_exception.dart';
 
 class APIClient {
+  // 本番環境用
   static const String baseURL = "https://mellowq.vercel.app";
+  // ローカル開発用（コメントアウト）
+  // static const String baseURL = "http://192.168.11.11:3000";
   static final Dio _dio = Dio();
 
   static void initialize() {
@@ -58,7 +61,7 @@ class APIClient {
     try {
       final payload = {
         'answers': answers.map((a) => a.toJson()).toList(),
-        if (deviceToken != null) 'deviceToken': deviceToken,
+        if (deviceToken != null) 'fcmToken': deviceToken, // Send FCM token for push notifications
       };
 
       final response = await _dio.post(

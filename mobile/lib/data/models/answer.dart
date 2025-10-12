@@ -6,7 +6,7 @@ class Answer extends Equatable {
 
   const Answer({
     required this.questionId,
-    required this.value,
+    this.value,
   });
 
   factory Answer.fromJson(Map<String, dynamic> json) {

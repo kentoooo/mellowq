@@ -35,10 +35,10 @@ class NotificationService {
     try {
       // Firebase初期化
       await Firebase.initializeApp();
-      
+
       // バックグラウンドメッセージハンドラーの設定
       FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-      
+
       // 通知権限の要求
       NotificationSettings settings = await _firebaseMessaging.requestPermission(
         alert: true,
@@ -60,9 +60,16 @@ class NotificationService {
         print('ユーザーが通知権限を拒否しました');
       }
 
+      // APNSトークンの変更を監視（iOS用）
+      _firebaseMessaging.onTokenRefresh.listen((fcmToken) {
+        print('FCMトークンが更新されました: $fcmToken');
+      }).onError((err) {
+        print('FCMトークン更新エラー: $err');
+      });
+
       // ローカル通知の初期化
       await _initializeLocalNotifications();
-      
+
       // フォアグラウンド通知の設定
       await _firebaseMessaging.setForegroundNotificationPresentationOptions(
         alert: true,
@@ -188,11 +195,36 @@ class NotificationService {
 
   static Future<String?> getDeviceToken() async {
     try {
-      return await _firebaseMessaging.getToken();
+      // APNSトークンを確認（iOS用）
+      final apnsToken = await _firebaseMessaging.getAPNSToken();
+      print('APNSトークン: ${apnsToken ?? "まだ取得されていません"}');
+
+      // APNSトークンが取得できるまで最大3回リトライ
+      int retryCount = 0;
+      String? fcmToken;
+
+      while (retryCount < 3) {
+        try {
+          fcmToken = await _firebaseMessaging.getToken();
+          if (fcmToken != null) {
+            print('FCMトークン取得成功: $fcmToken');
+            return fcmToken;
+          }
+        } catch (e) {
+          print('FCMトークン取得試行 ${retryCount + 1}/3 失敗: $e');
+        }
+
+        retryCount++;
+        if (retryCount < 3) {
+          await Future.delayed(Duration(seconds: retryCount * 2));
+        }
+      }
+
+      print('FCMトークン取得失敗: 最大リトライ回数に達しました');
+      return null;
     } catch (e) {
       print('デバイストークン取得エラー: $e');
-      // エラー時はモックトークンを返す
-      return 'mock_device_token_${DateTime.now().millisecondsSinceEpoch}';
+      return null;
     }
   }
 
